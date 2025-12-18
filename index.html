@@ -6,62 +6,61 @@
     <title>wishful winter</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* --- 1. 基础设置 --- */
+        /* --- 基础设置 --- */
         body { margin: 0; overflow: hidden; background: #050103; font-family: 'Helvetica Neue', 'Segoe UI', sans-serif; }
         #canvas-container { position: absolute; width: 100%; height: 100%; z-index: 1; }
         .mirror { transform: scaleX(-1); }
 
-        /* --- 2. 文艺感标题设计 (本次修改的核心) --- */
+        /* --- 文艺感标题 (核心修改) --- */
         .artistic-title {
             font-family: Georgia, 'Times New Roman', serif; /* 衬线字体 */
             font-style: italic; /* 斜体 */
             font-weight: 400; 
-            letter-spacing: 0.02em; /* 紧凑间距 */
+            letter-spacing: 0.05em; /* 紧凑间距 */
             text-transform: lowercase; 
-            /* 柔和流光 */
+            /* 柔和流光渐变 */
             background: linear-gradient(90deg, #ffb6c1, #ffffff, #ffb6c1);
             background-size: 200% auto;
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             animation: shimmer 6s linear infinite;
-            filter: drop-shadow(0 0 10px rgba(255, 105, 180, 0.5));
+            filter: drop-shadow(0 0 10px rgba(255, 105, 180, 0.4));
         }
-        
         @keyframes shimmer {
             to { background-position: 200% center; }
         }
 
-        /* 呼吸灯点 */
+        /* --- 装饰线和呼吸点 --- */
         .status-dot {
-            width: 4px; height: 4px;
+            width: 5px; height: 5px;
             background-color: #ff69b4;
             border-radius: 50%;
             box-shadow: 0 0 8px #ff69b4, 0 0 12px #ff1493;
             animation: breathe 3s infinite ease-in-out;
-            opacity: 0; transition: opacity 1s 1s;
         }
         @keyframes breathe {
-            0%, 100% { transform: scale(0.8); opacity: 0.5; }
-            50% { transform: scale(1.4); opacity: 1; }
+            0%, 100% { transform: scale(0.8); opacity: 0.6; }
+            50% { transform: scale(1.3); opacity: 1; }
         }
 
-        /* --- 3. 加载层样式 --- */
+        /* --- 加载层样式 --- */
         #loading-overlay {
             position: fixed; inset: 0; background: #050103; z-index: 100;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             transition: opacity 1.2s ease-out;
         }
-        .loader-ring {
-            width: 50px; height: 50px;
+        /* 将原本厚重的 loader 改为细致的圆环 */
+        .loader {
+            width: 40px; height: 40px;
             border: 2px solid rgba(255, 105, 180, 0.1);
             border-top: 2px solid #ff69b4;
             border-radius: 50%;
-            animation: spin 1s linear infinite; margin-bottom: 30px;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
         }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
-
-    <!-- Import Map (保持原样，千万别动) -->
+    <!-- Import Map (保持原样) -->
     <script type="importmap">
     {
         "imports": {
@@ -74,29 +73,29 @@
 </head>
 <body>
 
-    <!-- 加载层：应用新字体 -->
+    <!-- 1. 加载层 (文艺风格) -->
     <div id="loading-overlay">
-        <div class="loader-ring"></div>
-        <!-- 这里用了新的 class: artistic-title -->
-        <h1 class="artistic-title text-2xl">loading magic...</h1>
-        <div class="text-white/30 text-xs mt-4 font-mono tracking-widest" id="status-text">initializing ai core</div>
-        
-        <!-- 错误提示区 -->
-        <div id="error-msg" class="hidden mt-6 text-red-400 text-xs tracking-widest border-b border-red-900 pb-1">connection failed</div>
-        
-        <button id="start-btn" class="hidden mt-8 px-12 py-3 border border-pink-500/30 text-pink-300 hover:bg-pink-500/10 hover:text-white transition-all rounded-sm text-xs tracking-[0.3em] uppercase duration-500">
+        <h1 class="artistic-title text-2xl mb-4">wishful winter</h1>
+        <div class="loader"></div>
+        <div class="text-white/40 text-xs font-mono tracking-widest" id="status-text">initializing magic...</div>
+        <!-- 错误提示 -->
+        <div id="error-msg" class="hidden mt-4 text-red-400 text-xs tracking-widest border-b border-red-900 pb-1"></div>
+        <!-- 按钮 -->
+        <button id="start-btn" class="hidden mt-8 px-10 py-2 border border-pink-500/30 text-pink-300 hover:bg-pink-500/10 hover:text-white transition-all rounded-sm text-xs tracking-[0.2em] uppercase duration-500">
             Enter
         </button>
     </div>
 
-    <!-- 主界面：应用新字体和布局 -->
+    <!-- 2. 主界面 UI (左上角修改) -->
     <div class="fixed top-8 left-8 z-10 pointer-events-none select-none mix-blend-screen">
-        <h1 class="artistic-title text-4xl md:text-5xl">wishful winter</h1>
-        <!-- 装饰线 + 呼吸点 -->
-        <div class="flex items-center mt-2 opacity-80">
-            <div class="w-12 h-[1px] bg-gradient-to-r from-pink-400/50 to-transparent"></div>
-            <div id="live-dot" class="status-dot -ml-1"></div>
+        <!-- 字体改小一点：text-3xl -->
+        <h1 class="artistic-title text-3xl">wishful winter</h1>
+        <!-- 简单的装饰线 -->
+        <div class="flex items-center mt-2 opacity-70">
+            <div class="w-10 h-[1px] bg-gradient-to-r from-pink-400/50 to-transparent"></div>
+            <div class="status-dot -ml-1"></div>
         </div>
+        <!-- 移除了原本的操作说明文字 -->
     </div>
 
     <!-- 摄像头盒子 -->
@@ -107,10 +106,7 @@
 
     <div id="canvas-container"></div>
 
-    <!-- 
-      JavaScript 逻辑部分 
-      (完全复制于您提供的“能运行版”，没有任何逻辑修改) 
-    -->
+    <!-- JS 部分：完全复制于您提供的“能运行版” -->
     <script type="module">
         import * as THREE from 'three';
         import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
@@ -123,14 +119,12 @@
             counts: { leavesPink: 3600, leavesWhite: 400, ribbon: 1200 }
         };
 
-        // 注意：这里需要确保 ID 对应正确。我检查了上面的 HTML，ID 都是对的。
         const ui = {
             status: document.getElementById('status-text'),
             startBtn: document.getElementById('start-btn'),
             error: document.getElementById('error-msg'),
             overlay: document.getElementById('loading-overlay'),
-            loader: document.querySelector('.loader-ring'),
-            liveDot: document.getElementById('live-dot')
+            loader: document.querySelector('.loader')
         };
 
         // --- 1. AI 自动初始化 ---
@@ -138,7 +132,180 @@
 
         async function initAI() {
             try {
-                // 这里的 ./ 非常关键，确保 github 仓库里有 fileset 的 wasm 文件
+                // 必须指向 ./ 才能在 GitHub 上正确加载 WASM
                 const vision = await FilesetResolver.forVisionTasks("./");
+                
                 handLandmarker = await HandLandmarker.createFromOptions(vision, {
                     baseOptions: {
+                        modelAssetPath: "./hand_landmarker.task", 
+                        delegate: "GPU"
+                    },
+                    runningMode: "VIDEO",
+                    numHands: 1
+                });
+
+                ui.status.innerText = "ready"; // 简化提示文字
+                ui.loader.style.display = 'none';
+                ui.startBtn.style.display = 'block';
+
+            } catch(err) {
+                console.error(err);
+                ui.status.innerText = "load failed";
+                ui.loader.style.display = 'none';
+                ui.error.innerText = "Error: " + err.message;
+                ui.error.style.display = 'block';
+            }
+        }
+
+        ui.startBtn.addEventListener('click', () => {
+            ui.overlay.style.opacity = 0;
+            setTimeout(() => ui.overlay.style.display = 'none', 1000);
+            startCam();
+        });
+
+        initAI();
+
+        // --- 2. 3D 场景 ---
+        const container = document.getElementById('canvas-container');
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(CONFIG.colors.bg);
+        scene.fog = new THREE.FogExp2(CONFIG.colors.bg, 0.03);
+
+        const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
+        camera.position.set(0, 2, 24); 
+
+        const renderer = new THREE.WebGLRenderer({ antialias: false, powerPreference: "high-performance" });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        renderer.toneMapping = THREE.ReinhardToneMapping;
+        container.appendChild(renderer.domElement);
+
+        const renderScene = new RenderPass(scene, camera);
+        const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 1.5, 0.4, 0.85);
+        bloomPass.threshold = 0.15; bloomPass.strength = 1.3; bloomPass.radius = 0.6;
+        const composer = new EffectComposer(renderer);
+        composer.addPass(renderScene);
+        composer.addPass(bloomPass);
+
+        scene.add(new THREE.AmbientLight(0xffffff, 4.0));
+        const spotLight = new THREE.SpotLight(CONFIG.colors.pinkMain, 100);
+        spotLight.position.set(10, 20, 10);
+        scene.add(spotLight);
+        scene.add(new THREE.PointLight(0x8A2BE2, 40, 50));
+
+        // Geometry Helpers
+        const getTreePos = (n, h, r, yOff) => {
+            const a = new Float32Array(n*3);
+            for(let i=0;i<n;i++) {
+                const y=(Math.random()-0.5)*h, relY=(y+h/2)/h, rad=(1-relY)*r*Math.sqrt(Math.random()), ang=Math.random()*6.28;
+                a.set([rad*Math.cos(ang),y+yOff,rad*Math.sin(ang)],i*3);
+            }
+            return a;
+        };
+        const getExpPos = (n, r) => {
+            const a = new Float32Array(n*3);
+            for(let i=0;i<n;i++) {
+                const rad=r*Math.cbrt(Math.random()), th=Math.random()*6.28, ph=Math.acos(2*Math.random()-1);
+                a.set([rad*Math.sin(ph)*Math.cos(th),rad*Math.sin(ph)*Math.sin(th),rad*Math.cos(ph)],i*3);
+            }
+            return a;
+        };
+        const getRibPos = (n, h, r, t, yOff) => {
+            const a = new Float32Array(n*3);
+            for(let i=0;i<n;i++) {
+                const p=i/n, y=(p-0.5)*h, rad=(1-p)*r+0.2, ang=p*6.28*t;
+                a.set([rad*Math.cos(ang),y+yOff,rad*Math.sin(ang)],i*3);
+            }
+            return a;
+        };
+
+        class Sys {
+            constructor(cnt, geo, mat, fn1, fn2) {
+                this.m = new THREE.InstancedMesh(geo, mat, cnt);
+                this.p1 = fn1(); this.p2 = fn2(); this.cp = new Float32Array(this.p1);
+                this.d = new THREE.Object3D(); this.cnt = cnt;
+                scene.add(this.m);
+            }
+            upd(dt, t, s) {
+                this.m.rotation.y += s.rot * dt;
+                const tgt = s.mode === 'TREE' ? this.p1 : this.p2;
+                for(let i=0; i<this.cnt; i++) {
+                    const x=i*3;
+                    this.cp[x]+=(tgt[x]-this.cp[x])*0.1;
+                    this.cp[x+1]+=(tgt[x+1]-this.cp[x+1])*0.1;
+                    this.cp[x+2]+=(tgt[x+2]-this.cp[x+2])*0.1;
+                    this.d.position.set(this.cp[x],this.cp[x+1],this.cp[x+2]);
+                    const sc = Math.sin(t*2+i)*0.2+0.8;
+                    this.d.scale.set(sc,sc,sc);
+                    this.d.updateMatrix();
+                    this.m.setMatrixAt(i,this.d.matrix);
+                }
+                this.m.instanceMatrix.needsUpdate=true;
+            }
+        }
+
+        const sys1 = new Sys(3600, new THREE.OctahedronGeometry(0.12), new THREE.MeshStandardMaterial({color:0xFF69B4, emissive:0xFF1493, emissiveIntensity:0.6, roughness:0.2, metalness:0.1}), ()=>getTreePos(3600,13,4.5,-2), ()=>getExpPos(3600,12));
+        const sys2 = new Sys(400, new THREE.BoxGeometry(0.15,0.15,0.15), new THREE.MeshStandardMaterial({color:0xFFFFFF, emissive:0x555555}), ()=>getTreePos(400,13,4.5,-2), ()=>getExpPos(400,14));
+        const sys3 = new Sys(1200, new THREE.TetrahedronGeometry(0.08), new THREE.MeshStandardMaterial({color:0xFFFFFF, emissive:0xFFFFFF}), ()=>getRibPos(1200,14,5,5,-2), ()=>getExpPos(1200,15));
+
+        // --- 真正的五角星代码 ---
+        const starShape = new THREE.Shape();
+        for(let i=0; i<10; i++) {
+            // 偶数点是外半径(长)，奇数点是内半径(短)
+            const r = i % 2 === 0 ? 0.8 : 0.4;
+            const a = i / 5 * Math.PI;
+            starShape.lineTo(Math.sin(a)*r, Math.cos(a)*r);
+        }
+        const starGeo = new THREE.ExtrudeGeometry(starShape, { depth: 0.2, bevelEnabled: true, bevelThickness: 0.1 });
+        // 纯白 + 强自发光
+        const starMat = new THREE.MeshStandardMaterial({ color: 0xFFFFFF, emissive: 0xFFFFFF, emissiveIntensity: 2.0, roughness: 0.1 });
+        const star = new THREE.Mesh(starGeo, starMat);
+        star.position.y = 7; 
+        scene.add(star);
+        // -----------------------
+
+        const clock = new THREE.Clock();
+        const state = { mode:'TREE', rot:0, targetRot:0.2, time:0 };
+
+        function animate() {
+            requestAnimationFrame(animate);
+            const dt = clock.getDelta();
+            state.time += dt;
+            state.rot += (state.targetRot - state.rot) * dt * 2;
+            sys1.upd(dt, state.time, state);
+            sys2.upd(dt, state.time, state);
+            sys3.upd(dt, state.time, state);
+            
+            star.rotation.y += dt;
+            star.rotation.z = Math.sin(state.time)*0.1;
+            
+            const targetScale = state.mode==='TREE'?1:0.01;
+            const currentScale = star.scale.x;
+            const newScale = currentScale + (targetScale - currentScale) * dt * 5;
+            star.scale.set(newScale, newScale, newScale);
+            
+            composer.render();
+        }
+        animate();
+
+        // --- 3. Camera ---
+        const video = document.getElementById('webcam');
+        const canvas = document.getElementById('output_canvas');
+        const ctx = canvas.getContext('2d');
+        let lastTime = -1;
+
+        function startCam() {
+            document.getElementById('cam-box').style.display = 'block';
+            navigator.mediaDevices.getUserMedia({ video: true }).then((stream) => {
+                video.srcObject = stream;
+                video.addEventListener("loadeddata", predict);
+            });
+        }
+
+        function predict() {
+            if (!handLandmarker) return;
+            if (video.currentTime !== lastTime) {
+                lastTime = video.currentTime;
+                const res = handLandmarker.detectForVideo(video, performance.now());
+                canvas.width = video.videoWidth; canvas.height = video.videoHeight;
+                ctx.clearRect
