@@ -11,18 +11,20 @@
         #canvas-container { position: absolute; width: 100%; height: 100%; z-index: 1; }
         .mirror { transform: scaleX(-1); }
 
-        /* [核心美化] 文艺感衬线字体标题 */
+        /* [核心修改] 文艺感衬线字体标题 */
+        /* 替换了之前的 elegant-title */
         .artistic-title {
             font-family: Georgia, 'Times New Roman', serif; /* 经典衬线字体 */
-            font-style: italic; /* 斜体增加文艺感 */
-            font-weight: 400; /* 正常字重 */
-            letter-spacing: 0.05em; /* 紧凑而优雅的字间距 */
-            text-transform: lowercase; /* 保持小写风格 */
-            background: linear-gradient(90deg, #ff99cc, #ffffff, #ff99cc); 
+            font-style: italic; /* 斜体 */
+            font-weight: 400; 
+            letter-spacing: 0.05em; /* 紧凑间距，不再是宽间距 */
+            text-transform: lowercase; 
+            /* 柔和的粉白渐变 */
+            background: linear-gradient(90deg, #ffb6c1, #ffffff, #ffb6c1);
             background-size: 200% auto;
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            animation: shimmer 5s linear infinite; /* 流光动画 */
+            animation: shimmer 6s linear infinite; /* 流动慢一点，更优雅 */
             filter: drop-shadow(0 0 10px rgba(255, 105, 180, 0.5));
         }
 
@@ -30,19 +32,19 @@
             to { background-position: 200% center; }
         }
 
-        /* 呼吸灯点 (放在装饰线末尾) */
+        /* 呼吸灯点 (移到装饰线末尾) */
         .status-dot {
             width: 5px; height: 5px;
             background-color: #ff69b4;
             border-radius: 50%;
             box-shadow: 0 0 8px #ff69b4, 0 0 12px #ff1493;
             animation: breathe 2.5s infinite ease-in-out;
-            opacity: 0;
-            transition: opacity 1s 1s; /* 延迟1秒出现 */
+            opacity: 0; /* 初始隐藏 */
+            transition: opacity 1s 1s; 
         }
         @keyframes breathe {
-            0%, 100% { transform: scale(0.8); opacity: 0.7; }
-            50% { transform: scale(1.2); opacity: 1; }
+            0%, 100% { transform: scale(0.8); opacity: 0.6; }
+            50% { transform: scale(1.3); opacity: 1; }
         }
 
         /* 加载层样式 */
@@ -56,17 +58,10 @@
             border: 2px solid rgba(255, 105, 180, 0.1);
             border-top: 2px solid #ff69b4;
             border-radius: 50%;
-            animation: spin 1s linear infinite; margin-bottom: 30px;
+            animation: spin 1s linear infinite;
+            margin-bottom: 30px;
         }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        
-        /* 加载界面的文字也保持文艺风格 */
-        .loading-title {
-            font-family: Georgia, serif; font-style: italic; letter-spacing: 0.1em; text-transform: lowercase;
-            background: linear-gradient(90deg, #ff69b4, #ffffff, #ff69b4); background-size: 200% auto;
-            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-            animation: shimmer 5s linear infinite;
-        }
     </style>
     <!-- Import Map -->
     <script type="importmap">
@@ -84,21 +79,27 @@
     <!-- 1. 加载层 -->
     <div id="loading-overlay">
         <div class="loader-ring"></div>
-        <h1 class="loading-title text-2xl">loading magic...</h1>
-        <div class="text-white/30 text-xs mt-4 font-mono tracking-widest" id="status-text">connecting to ai core</div>
+        <!-- 使用新字体样式 -->
+        <h1 class="artistic-title text-2xl">loading magic...</h1>
+        <div class="text-white/30 text-xs mt-4 font-mono tracking-widest" id="status-text">initializing ai core</div>
         
-        <!-- 错误提示区 -->
-        <div id="error-msg" class="hidden mt-6 bg-red-900/30 p-4 border border-red-800 text-red-200 text-xs tracking-widest text-center max-w-xs"></div>
+        <div id="error-msg" class="hidden mt-6 text-red-400 text-xs tracking-widest border-b border-red-900 pb-1">connection failed</div>
         
-        <button id="start-btn" class="hidden mt-8 px-12 py-3 border border-pink-500/30 text-pink-300 hover:bg-pink-500/10 hover:text-white transition-all rounded-sm text-xs tracking-[0.3em] uppercase duration-500">Enter</button>
+        <button id="start-btn" class="hidden mt-8 px-12 py-3 border border-pink-500/30 text-pink-300 hover:bg-pink-500/10 hover:text-white transition-all rounded-sm text-xs tracking-[0.3em] uppercase duration-500">
+            Enter
+        </button>
     </div>
 
-    <!-- 2. 主界面 UI (文艺风格) -->
+    <!-- 2. 主界面 UI (文艺风格布局) -->
     <div class="fixed top-8 left-8 z-10 pointer-events-none select-none mix-blend-screen">
+        <!-- 标题：紧凑斜体 -->
         <h1 class="artistic-title text-4xl md:text-5xl">wishful winter</h1>
-        <!-- 装饰线与呼吸灯的结合 -->
-        <div class="flex items-center mt-3">
-            <div class="w-24 h-[1px] bg-gradient-to-r from-pink-400/60 to-transparent"></div>
+        
+        <!-- 装饰：线条 + 句点 -->
+        <div class="flex items-center mt-2 opacity-80">
+            <!-- 渐变线 -->
+            <div class="w-16 h-[1px] bg-gradient-to-r from-pink-400/50 to-transparent"></div>
+            <!-- 呼吸点 (句号) -->
             <div id="live-dot" class="status-dot -ml-1"></div>
         </div>
     </div>
@@ -120,6 +121,7 @@
 
         const CONFIG = {
             colors: { bg: 0x050103, pinkMain: 0xFF69B4, pinkGlow: 0xFF1493 },
+            counts: { leavesPink: 3600, leavesWhite: 400, ribbon: 1200 }
         };
 
         const ui = {
@@ -136,19 +138,17 @@
 
         async function initAI() {
             try {
-                // 1. 加载 WASM 核心
                 const vision = await FilesetResolver.forVisionTasks("./");
-                
-                // 2. 加载模型 Task
                 handLandmarker = await HandLandmarker.createFromOptions(vision, {
                     baseOptions: {
                         modelAssetPath: "./hand_landmarker.task", 
                         delegate: "GPU"
                     },
-                    runningMode: "VIDEO", numHands: 1
+                    runningMode: "VIDEO",
+                    numHands: 1
                 });
 
-                // 3. 成功回调
+                // 加载成功UI反馈
                 ui.status.innerText = "ready";
                 ui.loader.style.display = 'none';
                 ui.startBtn.style.display = 'block';
@@ -157,20 +157,14 @@
                 console.error(err);
                 ui.status.style.display = 'none';
                 ui.loader.style.display = 'none';
-                
-                // 更加友好的错误提示
-                let msg = "加载失败: ";
-                if(err.message.includes("404")) msg += "找不到模型文件 (.task)";
-                else if(err.message.includes("fetch")) msg += "网络连接问题";
-                else msg += err.message;
-                
-                ui.error.innerHTML = `${msg}<br><br>请检查 GitHub 仓库是否包含:<br>hand_landmarker.task<br>vision_wasm_internal.js<br>vision_wasm_internal.wasm`;
+                ui.error.innerText = "ai model missing - check github files";
                 ui.error.style.display = 'block';
             }
         }
-        
+
         ui.startBtn.addEventListener('click', () => {
             ui.overlay.style.opacity = 0;
+            // 激活主界面的绿点
             setTimeout(() => {
                 ui.overlay.style.display = 'none';
                 ui.liveDot.style.opacity = 1; 
@@ -184,6 +178,7 @@
         const container = document.getElementById('canvas-container');
         const scene = new THREE.Scene();
         scene.background = new THREE.Color(CONFIG.colors.bg);
+        // 增加更重的雾气，营造冬日朦胧感
         scene.fog = new THREE.FogExp2(CONFIG.colors.bg, 0.035);
 
         const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
@@ -197,7 +192,9 @@
 
         const renderScene = new RenderPass(scene, camera);
         const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 1.5, 0.4, 0.85);
-        bloomPass.threshold = 0.1; bloomPass.strength = 1.4; bloomPass.radius = 0.7;
+        bloomPass.threshold = 0.1; // 阈值更低，更梦幻
+        bloomPass.strength = 1.4; 
+        bloomPass.radius = 0.7;
         const composer = new EffectComposer(renderer);
         composer.addPass(renderScene);
         composer.addPass(bloomPass);
@@ -259,6 +256,7 @@
             }
         }
 
+        // 粒子系统：增加 emissiveIntensity 让画面更亮
         const sys1 = new Sys(3600, new THREE.OctahedronGeometry(0.12), new THREE.MeshStandardMaterial({color:0xFF69B4, emissive:0xFF1493, emissiveIntensity:0.7, roughness:0.2, metalness:0.1}), ()=>getTreePos(3600,13,4.5,-2), ()=>getExpPos(3600,12));
         const sys2 = new Sys(400, new THREE.BoxGeometry(0.15,0.15,0.15), new THREE.MeshStandardMaterial({color:0xFFFFFF, emissive:0x555555}), ()=>getTreePos(400,13,4.5,-2), ()=>getExpPos(400,14));
         const sys3 = new Sys(1200, new THREE.TetrahedronGeometry(0.08), new THREE.MeshStandardMaterial({color:0xFFFFFF, emissive:0xFFFFFF}), ()=>getRibPos(1200,14,5,5,-2), ()=>getExpPos(1200,15));
@@ -270,10 +268,9 @@
             const a = i / 5 * Math.PI;
             starShape.lineTo(Math.sin(a)*r, Math.cos(a)*r);
         }
-        const star = new THREE.Mesh(
-            new THREE.ExtrudeGeometry(starShape, { depth: 0.2, bevelEnabled: true, bevelThickness: 0.1 }),
-            new THREE.MeshStandardMaterial({ color: 0xFFFFFF, emissive: 0xFFFFFF, emissiveIntensity: 2.5, roughness: 0.1 })
-        );
+        const starGeo = new THREE.ExtrudeGeometry(starShape, { depth: 0.2, bevelEnabled: true, bevelThickness: 0.1 });
+        const starMat = new THREE.MeshStandardMaterial({ color: 0xFFFFFF, emissive: 0xFFFFFF, emissiveIntensity: 2.5, roughness: 0.1 });
+        const star = new THREE.Mesh(starGeo, starMat);
         star.position.y = 7; 
         scene.add(star);
 
@@ -285,8 +282,6 @@
             const dt = clock.getDelta();
             state.time += dt;
             state.rot += (state.targetRot - state.rot) * dt * 2;
-            
-            // 修复点：明确调用更新
             sys1.upd(dt, state.time, state);
             sys2.upd(dt, state.time, state);
             sys3.upd(dt, state.time, state);
@@ -327,6 +322,8 @@
                 if (res.landmarks[0]) {
                     const lm = res.landmarks[0];
                     new DrawingUtils(ctx).drawConnectors(lm, HandLandmarker.HAND_CONNECTIONS, {color:"#FF1493", lineWidth:3});
+                    
+                    // 阈值判断
                     state.mode = Math.hypot(lm[4].x-lm[8].x, lm[4].y-lm[8].y) < 0.1 ? 'TREE' : 'EXPLODE';
                     state.targetRot = (lm[9].x-0.5)*4;
                 }
