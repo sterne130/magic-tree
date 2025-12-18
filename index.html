@@ -11,14 +11,14 @@
         #canvas-container { position: absolute; width: 100%; height: 100%; z-index: 1; }
         .mirror { transform: scaleX(-1); }
 
-        /* [核心修改] 文艺感衬线字体标题 */
+        /* [核心美化] 文艺感衬线字体标题 */
         .artistic-title {
             font-family: Georgia, 'Times New Roman', serif; /* 经典衬线字体 */
             font-style: italic; /* 斜体增加文艺感 */
             font-weight: 400; /* 正常字重 */
-            letter-spacing: 0.1em; /* 紧凑而优雅的字间距 */
+            letter-spacing: 0.05em; /* 紧凑而优雅的字间距 */
             text-transform: lowercase; /* 保持小写风格 */
-            background: linear-gradient(90deg, #ff99cc, #ffffff, #ff99cc); /* 调整渐变色使其更柔和 */
+            background: linear-gradient(90deg, #ff99cc, #ffffff, #ff99cc); 
             background-size: 200% auto;
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
@@ -45,7 +45,7 @@
             50% { transform: scale(1.2); opacity: 1; }
         }
 
-        /* 加载层样式 (保持不变) */
+        /* 加载层样式 */
         #loading-overlay {
             position: fixed; inset: 0; background: #050103; z-index: 100;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
@@ -59,8 +59,10 @@
             animation: spin 1s linear infinite; margin-bottom: 30px;
         }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        /* 加载界面的文字也保持文艺风格 */
         .loading-title {
-            font-weight: 100; letter-spacing: 0.4em; text-transform: lowercase;
+            font-family: Georgia, serif; font-style: italic; letter-spacing: 0.1em; text-transform: lowercase;
             background: linear-gradient(90deg, #ff69b4, #ffffff, #ff69b4); background-size: 200% auto;
             -webkit-background-clip: text; -webkit-text-fill-color: transparent;
             animation: shimmer 5s linear infinite;
@@ -83,12 +85,15 @@
     <div id="loading-overlay">
         <div class="loader-ring"></div>
         <h1 class="loading-title text-2xl">loading magic...</h1>
-        <div class="text-white/30 text-xs mt-4 font-mono tracking-widest" id="status-text">initializing ai core</div>
-        <div id="error-msg" class="hidden mt-6 text-red-400 text-xs tracking-widest border-b border-red-900 pb-1"></div>
+        <div class="text-white/30 text-xs mt-4 font-mono tracking-widest" id="status-text">connecting to ai core</div>
+        
+        <!-- 错误提示区 -->
+        <div id="error-msg" class="hidden mt-6 bg-red-900/30 p-4 border border-red-800 text-red-200 text-xs tracking-widest text-center max-w-xs"></div>
+        
         <button id="start-btn" class="hidden mt-8 px-12 py-3 border border-pink-500/30 text-pink-300 hover:bg-pink-500/10 hover:text-white transition-all rounded-sm text-xs tracking-[0.3em] uppercase duration-500">Enter</button>
     </div>
 
-    <!-- 2. 主界面 UI (全新文艺风格) -->
+    <!-- 2. 主界面 UI (文艺风格) -->
     <div class="fixed top-8 left-8 z-10 pointer-events-none select-none mix-blend-screen">
         <h1 class="artistic-title text-4xl md:text-5xl">wishful winter</h1>
         <!-- 装饰线与呼吸灯的结合 -->
@@ -113,6 +118,10 @@
         import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
         import { FilesetResolver, HandLandmarker, DrawingUtils } from '@mediapipe/tasks-vision';
 
+        const CONFIG = {
+            colors: { bg: 0x050103, pinkMain: 0xFF69B4, pinkGlow: 0xFF1493 },
+        };
+
         const ui = {
             status: document.getElementById('status-text'),
             startBtn: document.getElementById('start-btn'),
@@ -123,24 +132,39 @@
         };
 
         // --- 1. AI 自动初始化 ---
+        let handLandmarker = undefined;
+
         async function initAI() {
             try {
+                // 1. 加载 WASM 核心
                 const vision = await FilesetResolver.forVisionTasks("./");
-                window.handLandmarker = await HandLandmarker.createFromOptions(vision, {
+                
+                // 2. 加载模型 Task
+                handLandmarker = await HandLandmarker.createFromOptions(vision, {
                     baseOptions: {
                         modelAssetPath: "./hand_landmarker.task", 
                         delegate: "GPU"
                     },
                     runningMode: "VIDEO", numHands: 1
                 });
+
+                // 3. 成功回调
                 ui.status.innerText = "ready";
                 ui.loader.style.display = 'none';
                 ui.startBtn.style.display = 'block';
+
             } catch(err) {
                 console.error(err);
                 ui.status.style.display = 'none';
                 ui.loader.style.display = 'none';
-                ui.error.innerText = "ai model missing - check github files";
+                
+                // 更加友好的错误提示
+                let msg = "加载失败: ";
+                if(err.message.includes("404")) msg += "找不到模型文件 (.task)";
+                else if(err.message.includes("fetch")) msg += "网络连接问题";
+                else msg += err.message;
+                
+                ui.error.innerHTML = `${msg}<br><br>请检查 GitHub 仓库是否包含:<br>hand_landmarker.task<br>vision_wasm_internal.js<br>vision_wasm_internal.wasm`;
                 ui.error.style.display = 'block';
             }
         }
@@ -156,11 +180,11 @@
 
         initAI();
 
-        // --- 2. 3D 场景 (代码无修改，保持原样) ---
+        // --- 2. 3D 场景 ---
         const container = document.getElementById('canvas-container');
         const scene = new THREE.Scene();
-        scene.background = new THREE.Color(0x050103);
-        scene.fog = new THREE.FogExp2(0x050103, 0.035);
+        scene.background = new THREE.Color(CONFIG.colors.bg);
+        scene.fog = new THREE.FogExp2(CONFIG.colors.bg, 0.035);
 
         const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
         camera.position.set(0, 2, 24); 
@@ -171,16 +195,151 @@
         renderer.toneMapping = THREE.ReinhardToneMapping;
         container.appendChild(renderer.domElement);
 
+        const renderScene = new RenderPass(scene, camera);
+        const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 1.5, 0.4, 0.85);
+        bloomPass.threshold = 0.1; bloomPass.strength = 1.4; bloomPass.radius = 0.7;
         const composer = new EffectComposer(renderer);
-        composer.addPass(new RenderPass(scene, camera));
-        const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 1.4, 0.7, 0.1);
+        composer.addPass(renderScene);
         composer.addPass(bloomPass);
 
         scene.add(new THREE.AmbientLight(0xffffff, 4.0));
-        const spotLight = new THREE.SpotLight(0xFF69B4, 100);
+        const spotLight = new THREE.SpotLight(CONFIG.colors.pinkMain, 100);
         spotLight.position.set(10, 20, 10);
         scene.add(spotLight);
         scene.add(new THREE.PointLight(0x8A2BE2, 40, 50));
 
-        const getTreePos=(n,h,r,yOff)=>{const a=new Float32Array(n*3);for(let i=0;i<n;i++){const y=(Math.random()-0.5)*h,relY=(y+h/2)/h,rad=(1-relY)*r*Math.sqrt(Math.random()),ang=Math.random()*6.28;a.set([rad*Math.cos(ang),y+yOff,rad*Math.sin(ang)],i*3)}return a};
-        const getExpPos=(n,r)=>{const
+        // Geometry Helpers
+        const getTreePos = (n, h, r, yOff) => {
+            const a = new Float32Array(n*3);
+            for(let i=0;i<n;i++) {
+                const y=(Math.random()-0.5)*h, relY=(y+h/2)/h, rad=(1-relY)*r*Math.sqrt(Math.random()), ang=Math.random()*6.28;
+                a.set([rad*Math.cos(ang),y+yOff,rad*Math.sin(ang)],i*3);
+            }
+            return a;
+        };
+        const getExpPos = (n, r) => {
+            const a = new Float32Array(n*3);
+            for(let i=0;i<n;i++) {
+                const rad=r*Math.cbrt(Math.random()), th=Math.random()*6.28, ph=Math.acos(2*Math.random()-1);
+                a.set([rad*Math.sin(ph)*Math.cos(th),rad*Math.sin(ph)*Math.sin(th),rad*Math.cos(ph)],i*3);
+            }
+            return a;
+        };
+        const getRibPos = (n, h, r, t, yOff) => {
+            const a = new Float32Array(n*3);
+            for(let i=0;i<n;i++) {
+                const p=i/n, y=(p-0.5)*h, rad=(1-p)*r+0.2, ang=p*6.28*t;
+                a.set([rad*Math.cos(ang),y+yOff,rad*Math.sin(ang)],i*3);
+            }
+            return a;
+        };
+
+        class Sys {
+            constructor(cnt, geo, mat, fn1, fn2) {
+                this.m = new THREE.InstancedMesh(geo, mat, cnt);
+                this.p1 = fn1(); this.p2 = fn2(); this.cp = new Float32Array(this.p1);
+                this.d = new THREE.Object3D(); this.cnt = cnt;
+                scene.add(this.m);
+            }
+            upd(dt, t, s) {
+                this.m.rotation.y += s.rot * dt;
+                const tgt = s.mode === 'TREE' ? this.p1 : this.p2;
+                for(let i=0; i<this.cnt; i++) {
+                    const x=i*3;
+                    this.cp[x]+=(tgt[x]-this.cp[x])*0.1;
+                    this.cp[x+1]+=(tgt[x+1]-this.cp[x+1])*0.1;
+                    this.cp[x+2]+=(tgt[x+2]-this.cp[x+2])*0.1;
+                    this.d.position.set(this.cp[x],this.cp[x+1],this.cp[x+2]);
+                    const sc = Math.sin(t*2+i)*0.2+0.8;
+                    this.d.scale.set(sc,sc,sc);
+                    this.d.updateMatrix();
+                    this.m.setMatrixAt(i,this.d.matrix);
+                }
+                this.m.instanceMatrix.needsUpdate=true;
+            }
+        }
+
+        const sys1 = new Sys(3600, new THREE.OctahedronGeometry(0.12), new THREE.MeshStandardMaterial({color:0xFF69B4, emissive:0xFF1493, emissiveIntensity:0.7, roughness:0.2, metalness:0.1}), ()=>getTreePos(3600,13,4.5,-2), ()=>getExpPos(3600,12));
+        const sys2 = new Sys(400, new THREE.BoxGeometry(0.15,0.15,0.15), new THREE.MeshStandardMaterial({color:0xFFFFFF, emissive:0x555555}), ()=>getTreePos(400,13,4.5,-2), ()=>getExpPos(400,14));
+        const sys3 = new Sys(1200, new THREE.TetrahedronGeometry(0.08), new THREE.MeshStandardMaterial({color:0xFFFFFF, emissive:0xFFFFFF}), ()=>getRibPos(1200,14,5,5,-2), ()=>getExpPos(1200,15));
+
+        // --- 五角星 ---
+        const starShape = new THREE.Shape();
+        for(let i=0; i<10; i++) {
+            const r = i % 2 === 0 ? 0.8 : 0.4;
+            const a = i / 5 * Math.PI;
+            starShape.lineTo(Math.sin(a)*r, Math.cos(a)*r);
+        }
+        const star = new THREE.Mesh(
+            new THREE.ExtrudeGeometry(starShape, { depth: 0.2, bevelEnabled: true, bevelThickness: 0.1 }),
+            new THREE.MeshStandardMaterial({ color: 0xFFFFFF, emissive: 0xFFFFFF, emissiveIntensity: 2.5, roughness: 0.1 })
+        );
+        star.position.y = 7; 
+        scene.add(star);
+
+        const clock = new THREE.Clock();
+        const state = { mode:'TREE', rot:0, targetRot:0.2, time:0 };
+
+        function animate() {
+            requestAnimationFrame(animate);
+            const dt = clock.getDelta();
+            state.time += dt;
+            state.rot += (state.targetRot - state.rot) * dt * 2;
+            
+            // 修复点：明确调用更新
+            sys1.upd(dt, state.time, state);
+            sys2.upd(dt, state.time, state);
+            sys3.upd(dt, state.time, state);
+            
+            star.rotation.y += dt;
+            star.rotation.z = Math.sin(state.time)*0.1;
+            
+            const targetScale = state.mode==='TREE'?1:0.01;
+            const currentScale = star.scale.x;
+            const newScale = currentScale + (targetScale - currentScale) * dt * 5;
+            star.scale.set(newScale, newScale, newScale);
+            
+            composer.render();
+        }
+        animate();
+
+        // --- Camera ---
+        const video = document.getElementById('webcam');
+        const canvas = document.getElementById('output_canvas');
+        const ctx = canvas.getContext('2d');
+        let lastTime = -1;
+
+        function startCam() {
+            document.getElementById('cam-box').style.display = 'block';
+            navigator.mediaDevices.getUserMedia({ video: true }).then((stream) => {
+                video.srcObject = stream;
+                video.addEventListener("loadeddata", predict);
+            });
+        }
+
+        function predict() {
+            if (!handLandmarker) return;
+            if (video.currentTime !== lastTime) {
+                lastTime = video.currentTime;
+                const res = handLandmarker.detectForVideo(video, performance.now());
+                canvas.width = video.videoWidth; canvas.height = video.videoHeight;
+                ctx.clearRect(0,0,canvas.width,canvas.height);
+                if (res.landmarks[0]) {
+                    const lm = res.landmarks[0];
+                    new DrawingUtils(ctx).drawConnectors(lm, HandLandmarker.HAND_CONNECTIONS, {color:"#FF1493", lineWidth:3});
+                    state.mode = Math.hypot(lm[4].x-lm[8].x, lm[4].y-lm[8].y) < 0.1 ? 'TREE' : 'EXPLODE';
+                    state.targetRot = (lm[9].x-0.5)*4;
+                }
+            }
+            requestAnimationFrame(predict);
+        }
+        
+        window.addEventListener('resize', ()=>{
+            camera.aspect=window.innerWidth/window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth,window.innerHeight);
+            composer.setSize(window.innerWidth,window.innerHeight);
+        });
+    </script>
+</body>
+</html>
