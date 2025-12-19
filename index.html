@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>wishful winter</title>
-    <!-- 使用 tailwindcss 的国内/通用 CDN -->
+    <!-- 使用 jsdelivr 加速 tailwind -->
     <script src="https://cdn.jsdelivr.net/npm/tailwindcss@3.4.1/lib/index.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -20,7 +20,6 @@
             font-weight: 400; 
             letter-spacing: 0.05em; 
             text-transform: lowercase; /* 强制小写 */
-            /* 柔和流光 */
             background: linear-gradient(90deg, #ffb6c1, #ffffff, #ffb6c1);
             background-size: 200% auto;
             -webkit-background-clip: text;
@@ -28,10 +27,7 @@
             animation: shimmer 6s linear infinite;
             filter: drop-shadow(0 0 10px rgba(255, 105, 180, 0.4));
         }
-        
-        @keyframes shimmer {
-            to { background-position: 200% center; }
-        }
+        @keyframes shimmer { to { background-position: 200% center; } }
 
         /* 呼吸灯点 */
         .status-dot {
@@ -53,7 +49,6 @@
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             transition: opacity 1.2s ease-out;
         }
-        /* 细致的圆环加载 */
         .loader-ring {
             width: 40px; height: 40px;
             border: 2px solid rgba(255, 105, 180, 0.1);
@@ -64,7 +59,7 @@
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 
-    <!-- Import Map (换用 jsdelivr，国内访问更稳) -->
+    <!-- Import Map (核心库) -->
     <script type="importmap">
     {
         "imports": {
@@ -77,23 +72,20 @@
 </head>
 <body>
 
-    <!-- 1. 加载层 -->
+    <!-- 加载层 -->
     <div id="loading-overlay">
         <div class="loader-ring"></div>
         <h1 class="artistic-title text-xl">wishful winter</h1>
-        <div class="text-white/30 text-xs mt-3 font-mono tracking-widest" id="status-text">locating local files...</div>
-        
+        <div class="text-white/30 text-xs mt-3 font-mono tracking-widest" id="status-text">connecting...</div>
         <!-- 错误提示区 -->
-        <div id="error-msg" class="hidden mt-6 text-red-300 text-xs text-left p-4 border border-red-900 bg-red-900/20 rounded max-w-md"></div>
-        
+        <div id="error-msg" class="hidden mt-6 text-red-300 text-xs text-left p-4 border border-red-900 bg-red-900/20 rounded max-w-md break-all"></div>
         <button id="start-btn" class="hidden mt-8 px-10 py-2 border border-pink-500/30 text-pink-300 hover:bg-pink-500/10 hover:text-white transition-all rounded-sm text-xs tracking-[0.2em] uppercase duration-500">
             Enter
         </button>
     </div>
 
-    <!-- 2. 主界面 UI (完全符合要求：左上角，小写，字号缩小，文艺) -->
+    <!-- 主界面 UI -->
     <div class="fixed top-8 left-8 z-10 pointer-events-none select-none mix-blend-screen">
-        <!-- 从 text-4xl 改为 text-2xl md:text-3xl，视觉更精致 -->
         <h1 class="artistic-title text-2xl md:text-3xl">wishful winter</h1>
         <div class="flex items-center mt-2 opacity-80">
             <div class="w-8 h-[1px] bg-gradient-to-r from-pink-400/50 to-transparent"></div>
@@ -130,62 +122,56 @@
             liveDot: document.getElementById('live-dot')
         };
 
-        // --- 1. AI 自动初始化 (严格本地模式) ---
+        // --- 1. AI 自动初始化 (路径修复版) ---
         let handLandmarker = undefined;
 
         async function initAI() {
-            // 设置一个超时检查，如果15秒还没好，提示用户缺文件
-            const timer = setTimeout(() => {
-                if(ui.loader.style.display !== 'none') {
-                    ui.error.innerHTML = "⚠️ <strong>加载超时 (Timeout)</strong><br>系统无法在您的 GitHub 仓库中找到 AI 核心文件。<br><br>请检查仓库是否包含以下 <strong>3个文件</strong> (缺一不可):<br>1. <code>hand_landmarker.task</code><br>2. <code>vision_wasm_internal.wasm</code><br>3. <code>vision_wasm_internal.js</code>";
-                    ui.error.style.display = 'block';
-                    ui.status.innerText = "files missing";
-                }
-            }, 15000);
-
             try {
-                ui.status.innerText = "loading local engine...";
+                // 【核心修改1】动态计算当前路径，确保指向正确
+                // 如果当前网址是 https://sterne130.github.io/repo/index.html
+                // basePath 就会变成 https://sterne130.github.io/repo/
+                const currentUrl = window.location.href;
+                const basePath = currentUrl.substring(0, currentUrl.lastIndexOf('/') + 1);
+
+                console.log("Loading files from:", basePath);
+                ui.status.innerText = "fetching local files...";
                 
-                // 【关键】使用 ./ 强制读取本地文件
-                // 这要求您的 index.html 同级目录下必须有 vision_wasm_internal.wasm 和 vision_wasm_internal.js
-                const vision = await FilesetResolver.forVisionTasks("./");
+                // 【核心修改2】不再使用 "./"，而是传入绝对路径 basePath
+                // 这能解决 GitHub Pages 子目录路径解析错误的问题
+                const vision = await FilesetResolver.forVisionTasks(basePath);
                 
-                ui.status.innerText = "loading local model...";
+                ui.status.innerText = "parsing model...";
                 
                 handLandmarker = await HandLandmarker.createFromOptions(vision, {
                     baseOptions: {
-                        modelAssetPath: "./hand_landmarker.task", 
+                        // 强制使用完整路径加载模型
+                        modelAssetPath: basePath + "hand_landmarker.task", 
                         delegate: "GPU"
                     },
                     runningMode: "VIDEO",
                     numHands: 1
                 });
 
-                // 加载成功
-                clearTimeout(timer);
                 ui.status.innerText = "ready";
                 ui.loader.style.display = 'none';
                 ui.startBtn.style.display = 'block';
 
             } catch(err) {
-                clearTimeout(timer);
                 console.error(err);
                 ui.status.style.display = 'none';
                 ui.loader.style.display = 'none';
                 
                 let msg = err.message || "Unknown Error";
-                // 智能分析错误原因
-                if(msg.includes("404")) msg = "找不到文件 (404 Not Found)。<br>请检查 GitHub 仓库是否上传了 .task 或 .wasm 文件。";
-                else if(msg.includes("fetch")) msg = "文件读取失败。<br>可能是文件名大小写错误，或者文件未上传成功。";
+                // 友好报错
+                if(msg.includes("404")) msg = "404 Error: 找不到文件。<br>请确认 GitHub 仓库里有 hand_landmarker.task 和 vision_wasm_internal.wasm";
                 
-                ui.error.innerHTML = "<strong>Error:</strong><br>" + msg;
+                ui.error.innerHTML = `<strong>Load Failed:</strong><br>${msg}<br><br><span class="opacity-50 text-[10px]">Path: ${window.location.href}</span>`;
                 ui.error.style.display = 'block';
             }
         }
 
         ui.startBtn.addEventListener('click', () => {
             ui.overlay.style.opacity = 0;
-            // 激活主界面的呼吸灯
             setTimeout(() => {
                 ui.overlay.style.display = 'none';
                 if(ui.liveDot) ui.liveDot.style.opacity = 1; 
@@ -195,7 +181,7 @@
 
         initAI();
 
-        // --- 2. 3D 场景 (保持原样) ---
+        // --- 2. 3D 场景 ---
         const container = document.getElementById('canvas-container');
         const scene = new THREE.Scene();
         scene.background = new THREE.Color(CONFIG.colors.bg);
